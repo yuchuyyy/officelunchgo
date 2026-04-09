@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OfficeGO! 辦公室點餐系統</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f0eb;--surface:#fff;--border:#e0d8cf;
+  --accent:#e85d2f;--accent2:#f5a623;
+  --text:#2c2417;--text2:#7a6a56;--text3:#b0a090;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.top-bar{background:var(--accent);padding:0 20px;display:flex;align-items:center;gap:12px;height:54px;position:sticky;top:0;z-index:100}
+.logo{font-size:20px;font-weight:700;color:#fff;letter-spacing:1px}
+.logo span{color:var(--accent2)}
+.tagline{color:#ffecb3;font-size:12px;font-weight:500}
+.nav{display:flex;gap:0;padding:0 16px;background:var(--surface);border-bottom:2px solid var(--border);position:sticky;top:54px;z-index:99;overflow-x:auto}
+.nav-btn{padding:12px 18px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.15s;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.nav-btn:hover{color:var(--accent)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.page{display:none;padding:16px;max-width:700px;margin:0 auto}
+.page.active{display:block}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 2px 0 var(--border)}
+.card-title{font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text)}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:32px 16px;text-align:center;cursor:pointer;color:var(--text3);font-size:13px;transition:all 0.15s;background:var(--bg)}
+.upload-zone:hover{border-color:var(--accent);color:var(--accent);background:#fff8f5}
+.btn{padding:8px 18px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;color:var(--text);transition:all 0.15s;font-family:inherit}
+.btn:hover{background:var(--bg)}
+.btn:active{transform:scale(0.97)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{background:#c94d22;border-color:#c94d22}
+.btn-amber{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.btn-amber:hover{background:#d4911a}
+.btn-red{border-color:#e85d2f;color:#e85d2f;background:none}
+.btn-red:hover{background:#fff3ef}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-green{background:#3B6D11;color:#fff;border-color:#3B6D11}
+.btn-green:hover{background:#27500A}
+input[type=text],input[type=number]{padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;transition:border 0.15s;outline:none;width:100%}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--accent)}
+input[type=number]{width:auto}
+.field-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;margin-top:12px;letter-spacing:0.5px;text-transform:uppercase}
+.chip-group{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:5px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text2);transition:all 0.12s;white-space:nowrap;font-family:inherit;user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip.chip-none.sel{background:#888;color:#fff;border-color:#888}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:10px}
+.photo-card{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface);box-shadow:0 2px 0 var(--border);cursor:pointer;transition:all 0.15s}
+.photo-card:hover{border-color:var(--accent)}
+.photo-card.sel{border:2.5px solid var(--accent)}
+.photo-card img{width:100%;height:150px;object-fit:cover;display:block}
+.photo-footer{padding:7px 10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);background:var(--bg)}
+.today-img{width:100%;border-radius:var(--radius);object-fit:contain;max-height:340px;border:1.5px solid var(--border);display:block;background:var(--bg);margin-bottom:12px}
+.order-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}
+.order-row:last-child{border-bottom:none}
+.export-table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+.export-table th{background:var(--bg);padding:8px 10px;text-align:left;font-weight:700;border:1px solid var(--border);color:var(--text2);font-size:12px}
+.export-table td{padding:8px 10px;border:1px solid var(--border);vertical-align:middle}
+.empty{padding:24px;text-align:center;color:var(--text3);font-size:13px}
+.topping-tag{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;background:#fff3ef;color:#c94d22;border-radius:12px;font-size:12px;margin:2px;font-weight:500;border:1px solid #f5c9b8}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.field-toggle{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;cursor:pointer;border-bottom:1px dashed var(--border)}
+.field-toggle:last-child{border-bottom:none}
+.field-toggle input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;flex-shrink:0}
+.total-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-weight:700;font-size:15px;border-top:2px solid var(--border);margin-top:8px}
+.badge{background:var(--accent);color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:2px 7px;margin-left:6px;display:inline-block}
+.info-box{background:#fff8f5;border:1.5px solid #f5c9b8;border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:#c94d22;margin-bottom:12px;line-height:1.6}
+@media(max-width:480px){
+  .photo-grid{grid-template-columns:1fr 1fr}
+  .nav-btn{padding:10px 12px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">OFFICE<span>GO!</span></div>
+  <div class="tagline">辦公室點餐系統</div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="go('lib')">菜單庫</button>
+  <button class="nav-btn" onclick="go('today')">今日菜單</button>
+  <button class="nav-btn" onclick="go('order')">點餐 <span class="badge" id="order-badge" style="display:none"></span></button>
+  <button class="nav-btn" onclick="go('export')">訂單匯出</button>
+</div>
+
+<!-- 菜單庫 -->
+<div id="p-lib" class="page active">
+  <div class="card">
+    <div class="card-title">上傳菜單照片</div>
+    <div class="info-box">上傳後照片會儲存在這台裝置的瀏覽器，其他人需要由「管理員」在自己電腦設定今日菜單。</div>
+    <div class="upload-zone" onclick="document.getElementById('lib-upload').click()">
+      <div style="font-size:32px;margin-bottom:8px">📷</div>
+      <div style="font-weight:500;margin-bottom:4px">點擊上傳菜單照片</div>
+      <div style="font-size:12px;color:var(--text3)">支援 JPG、PNG，可一次選多張</div>
+    </div>
+    <input type="file" id="lib-upload" accept="image/*" multiple style="display:none" onchange="uploadPhotos(this)">
+  </div>
+  <div class="card">
+    <div class="card-title">菜單庫 <span id="lib-count" style="color:var(--text3);font-weight:400;font-size:13px"></span></div>
+    <div class="photo-grid" id="lib-grid"><div class="empty">尚未上傳任何菜單照片</div></div>
+  </div>
+</div>
+
+<!-- 今日菜單 -->
+<div id="p-today" class="page">
+  <div class="card">
+    <div class="card-title">選擇今日菜單</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">點擊照片設為今日使用的菜單，點餐頁面會顯示這張圖給大家參考</div>
+    <div class="photo-grid" id="today-picker"><div class="empty">請先至菜單庫上傳照片</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">開放欄位設定</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">勾選點餐時需要填寫的選項</div>
+    <div id="field-cfg"></div>
+  </div>
+</div>
+
+<!-- 點餐 -->
+<div id="p-order" class="page">
+  <div id="today-img-wrap"></div>
+  <div class="card">
+    <div class="card-title">填寫訂單</div>
+    <div>
+      <div class="field-label">你的名字</div>
+      <input type="text" id="f-name" placeholder="請輸入名字">
+    </div>
+
+    <div id="dyn-topping">
+      <div class="field-label">加料</div>
+      <div id="topping-tags" style="margin-bottom:6px"></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="topping-inp" placeholder="輸入加料，如：珍珠、椰果" style="flex:1;width:auto">
+        <button class="btn btn-sm" onclick="addTopping()" style="flex-shrink:0">加入</button>
+      </div>
+    </div>
+
+    <div class="field-label">品項（對照菜單填寫）</div>
+    <input type="text" id="f-item" placeholder="例：珍珠奶茶、雞腿便當">
+
+    <div class="field-label">價格（NT$）</div>
+    <input type="number" id="f-price" placeholder="0" style="width:120px">
+
+    <div id="dyn-fields"></div>
+
+    <div style="margin-top:14px">
+      <button class="btn btn-accent" onclick="addRow()">加入清單</button>
+    </div>
+  </div>
+
+  <div id="pending-section" style="display:none">
+    <div class="card">
+      <div class="card-title" id="pending-title"></div>
+      <div id="pending-rows"></div>
+      <div class="total-bar">
+        <span>合計</span>
+        <span style="color:var(--accent)" id="pending-total"></span>
+      </div>
+      <button class="btn btn-green" style="width:100%;margin-top:10px" onclick="submitAll()">確認送出訂單</button>
+    </div>
+  </div>
+</div>
+
+<!-- 匯出訂單 -->
+<div id="p-export" class="page">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin:0">今日訂單 <span id="export-count" style="color:var(--text3);font-weight:400;font-size:13px"></span></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-amber btn-sm" onclick="copyText()">複製清單</button>
+        <button class="btn btn-red btn-sm" onclick="clearAll()">清除全部</button>
+      </div>
+    </div>
+    <div id="export-area"><div class="empty">尚無訂單</div></div>
+  </div>
+</div>
+
+<script>
+const SK={photos:'og_photos',today:'og_today',fields:'og_fields',orders:'og_orders'};
+const FIELDS=[
+  {k:'size_food', label:'大小（餐點）', opts:['大','小','無']},
+  {k:'size_drink',label:'大小（飲料）', opts:['L','M','無']},
+  {k:'soup',      label:'乾 / 湯',     opts:['乾','湯','無']},
+  {k:'sugar',     label:'糖量',        opts:['全糖','半糖','三分糖','一分糖','無糖']},
+  {k:'ice',       label:'冰量',        opts:['正常冰','少冰','半冰','微冰','去冰','溫']},
+];
+let photos=[],todayId=null,fieldCfg={size_food:true,size_drink:true,soup:true,sugar:true,ice:true};
+let allOrders=[],pending=null,toppings=[];
+
+function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{alert('儲存空間不足，照片可能太大')}}
+
+function init(){
+  photos=lsGet(SK.photos)||[];
+  todayId=lsGet(SK.today);
+  const fc=lsGet(SK.fields);if(fc)fieldCfg=fc;
+  allOrders=lsGet(SK.orders)||[];
+  renderLib();renderTodayPicker();renderFieldCfg();renderOrderPage();renderExport();updateBadge();
+}
+
+function go(p){
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',['lib','today','order','export'][i]===p));
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('p-'+p).classList.add('active');
+  if(p==='order')renderOrderPage();
+  if(p==='export')renderExport();
+}
+
+function uploadPhotos(inp){
+  const files=[...inp.files];
+  let loaded=0;
+  if(!files.length)return;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      photos.push({id:'p'+Date.now()+Math.floor(Math.random()*9999),name:f.name,data:e.target.result});
+      loaded++;
+      if(loaded===files.length){lsSet(SK.photos,photos);renderLib();renderTodayPicker();}
+    };
+    r.readAsDataURL(f);
+  });
+  inp.value='';
+}
+
+function renderLib(){
+  const g=document.getElementById('lib-grid');
+  document.getElementById('lib-count').textContent=photos.length?`（${photos.length} 張）`:'';
+  if(!photos.length){g.innerHTML='<div class="empty">尚未上傳任何菜單照片</div>';return}
+  g.innerHTML=photos.map(p=>`<div class="photo-card">
+    <img src="${p.data}" alt="${p.name}" loading="lazy">
+    <div class="photo-footer">
+      <span style="font-size:11px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:110px">${p.name}</span>
+      <button class="btn btn-red btn-sm" onclick="deletePhoto('${p.id}')">刪除</button>
+    </div>
+  </div>`).join('');
+}
+
+function deletePhoto(id){
+  if(!confirm('確定刪除這張照片？'))return;
+  photos=photos.filter(p=>p.id!==id);
+  if(todayId===id){todayId=null;lsSet(SK.today,null);}
+  lsSet(SK.photos,photos);renderLib();renderTodayPicker();renderOrderPage();
+}
+
+function renderTodayPicker(){
+  const g=document.getElementById('today-picker');
+  if(!photos.length){g.innerHTML='<div class="empty">請先至菜單庫上傳照片</div>';return}
+  g.innerHTML=photos.map(p=>`<div class="photo-card${p.id===todayId?' sel':''}" onclick="setToday('${p.id}')">
+    <img src="${p.data}" alt="${p.name}" loading="lazy">
+    <div class="photo-footer" style="${p.id===todayId?'background:#fff3ef;border-top-color:#f5c9b8':''}">
+      <span style="font-size:12px;color:${p.id===todayId?'var(--accent)':'var(--text2)'};font-weight:${p.id===todayId?'700':'400'}">${p.id===todayId?'✓ 今日菜單':p.name}</span>
+    </div>
+  </div>`).join('');
+}
+
+function setToday(id){todayId=id;lsSet(SK.today,id);renderTodayPicker();}
+
+function renderFieldCfg(){
+  document.getElementById('field-cfg').innerHTML=FIELDS.map(f=>`
+    <label class="field-toggle">
+      <input type="checkbox" ${fieldCfg[f.k]?'checked':''} onchange="toggleField('${f.k}',this.checked)">
+      <span style="flex:1">${f.label}</span>
+      <span style="font-size:11px;color:var(--text3)">${f.opts.join(' / ')}</span>
+    </label>`).join('');
+}
+
+function toggleField(k,v){fieldCfg[k]=v;lsSet(SK.fields,fieldCfg);renderDynFields();}
+
+function renderOrderPage(){
+  const wrap=document.getElementById('today-img-wrap');
+  const photo=photos.find(p=>p.id===todayId);
+  wrap.innerHTML=photo
+    ?`<img src="${photo.data}" class="today-img" alt="今日菜單">`
+    :`<div class="card" style="text-align:center;color:var(--text3);padding:20px;font-size:13px">今日菜單尚未設定，請至「今日菜單」頁選擇</div>`;
+  renderDynFields();
+}
+
+function renderDynFields(){
+  const el=document.getElementById('dyn-fields');
+  let html='';
+  FIELDS.forEach(f=>{
+    if(!fieldCfg[f.k])return;
+    html+=`<div class="field-label">${f.label}</div>`;
+    html+=`<div class="chip-group" id="chips-${f.k}">${f.opts.map(o=>`<div class="chip${o==='無'?' chip-none':''}" onclick="pickChip(this,'${f.k}')">${o}</div>`).join('')}</div>`;
+  });
+  el.innerHTML=html;
+}
+
+function pickChip(el,k){
+  el.closest('.chip-group').querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function getChip(k){
+  const el=document.querySelector(`#chips-${k} .chip.sel`);
+  return el?el.textContent:'';
+}
+
+function addTopping(){
+  const inp=document.getElementById('topping-inp');
+  const v=inp.value.trim();
+  if(!v)return;
+  toppings.push(v);inp.value='';renderToppingTags();
+}
+function rmT(i){toppings.splice(i,1);renderToppingTags();}
+function renderToppingTags(){
+  document.getElementById('topping-tags').innerHTML=
+    toppings.map((t,i)=>`<span class="topping-tag">${t}<span onclick="rmT(${i})" style="cursor:pointer;margin-left:4px">×</span></span>`).join('');
+}
+
+function addRow(){
+  const name=document.getElementById('f-name').value.trim();
+  const item=document.getElementById('f-item').value.trim();
+  const price=parseInt(document.getElementById('f-price').value)||0;
+  if(!name){alert('請填寫你的名字');return}
+  if(!item){alert('請填寫品項');return}
+  const detail={};
+  FIELDS.forEach(f=>{if(fieldCfg[f.k])detail[f.k]=getChip(f.k);});
+  detail.topping=toppings.join('、');
+  if(!pending||pending.name!==name)pending={name,rows:[]};
+  pending.rows.push({item,price,detail});
+  toppings=[];
+  document.getElementById('f-item').value='';
+  document.getElementById('f-price').value='';
+  renderToppingTags();renderDynFields();renderPending();updateBadge();
+}
+
+function renderPending(){
+  if(!pending||!pending.rows.length){
+    document.getElementById('pending-section').style.display='none';return;
+  }
+  document.getElementById('pending-section').style.display='block';
+  document.getElementById('pending-title').textContent=pending.name+' 的點單';
+  const total=pending.rows.reduce((s,r)=>s+r.price,0);
+  document.getElementById('pending-total').textContent='NT$'+total;
+  document.getElementById('pending-rows').innerHTML=pending.rows.map((r,i)=>{
+    const d=r.detail||{};
+    const parts=[d.size_food,d.size_drink,d.soup,d.sugar,d.ice].filter(v=>v&&v!=='無').join(' · ');
+    const top=d.topping?'加：'+d.topping:'';
+    const desc=[parts,top].filter(Boolean).join('　');
+    return `<div class="order-row">
+      <div>
+        <div style="font-weight:500">${r.item}</div>
+        ${desc?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${desc}</div>`:''}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+        <span style="color:var(--accent);font-weight:700">NT$${r.price}</span>
+        <button class="btn btn-red btn-sm" onclick="rmRow(${i})">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function rmRow(i){
+  pending.rows.splice(i,1);
+  if(!pending.rows.length)pending=null;
+  renderPending();updateBadge();
+}
+
+function updateBadge(){
+  const b=document.getElementById('order-badge');
+  const n=pending?.rows?.length||0;
+  b.style.display=n?'inline-block':'none';
+  b.textContent=n;
+}
+
+function submitAll(){
+  if(!pending||!pending.rows.length)return;
+  const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const idx=allOrders.findIndex(o=>o.name===pending.name);
+  if(idx>=0)allOrders[idx]={...pending,time};
+  else allOrders.push({...pending,time});
+  lsSet(SK.orders,allOrders);
+  pending=null;
+  renderPending();updateBadge();
+  alert('訂單已送出！');
+  go('export');
+}
+
+function renderExport(){
+  const el=document.getElementById('export-area');
+  document.getElementById('export-count').textContent=allOrders.length?`（${allOrders.length} 人）`:'';
+  if(!allOrders.length){el.innerHTML='<div class="empty">尚無訂單</div>';return}
+  const grand=allOrders.flatMap(o=>o.rows).reduce((s,r)=>s+r.price,0);
+  let html=`<div style="overflow-x:auto"><table class="export-table"><thead><tr>
+    <th>姓名</th><th>品項</th><th>細節</th><th>加料</th><th>金額</th><th></th>
+  </tr></thead><tbody>`;
+  allOrders.forEach((o,oi)=>{
+    o.rows.forEach((r,ri)=>{
+      const d=r.detail||{};
+      const parts=[d.size_food,d.size_drink,d.soup,d.sugar,d.ice].filter(v=>v&&v!=='無').join(' · ')||'-';
+      const top=d.topping||'-';
+      html+=`<tr>
+        <td>${ri===0?`<span style="font-weight:700">${o.name}</span><br><span style="font-size:11px;color:var(--text3)">${o.time||''}</span>`:''}</td>
+        <td style="font-weight:500">${r.item}</td>
+        <td style="color:var(--text2);font-size:12px">${parts}</td>
+        <td style="color:var(--text2);font-size:12px">${top}</td>
+        <td style="color:var(--accent);font-weight:700;white-space:nowrap">NT$${r.price}</td>
+        ${ri===0?`<td rowspan="${o.rows.length}" style="text-align:center;vertical-align:middle">
+          <button class="btn btn-red btn-sm" onclick="delOrder(${oi})">刪除</button>
+        </td>`:''}
+      </tr>`;
+    });
+  });
+  html+=`</tbody><tfoot><tr>
+    <td colspan="4" style="text-align:right;font-weight:700;padding:8px 10px;color:var(--text2)">總計</td>
+    <td style="color:var(--accent);font-weight:700;padding:8px 10px">NT$${grand}</td>
+    <td></td>
+  </tr></tfoot></table></div>`;
+  el.innerHTML=html;
+}
+
+function delOrder(i){
+  if(!confirm('確定刪除這筆訂單？'))return;
+  allOrders.splice(i,1);lsSet(SK.orders,allOrders);renderExport();
+}
+
+function clearAll(){
+  if(!confirm('確定清除今日所有訂單？'))return;
+  allOrders=[];lsSet(SK.orders,allOrders);renderExport();
+}
+
+function copyText(){
+  const today=new Date().toLocaleDateString('zh-TW');
+  let t=`=== ${today} 訂餐單 ===\n\n`;
+  allOrders.forEach(o=>{
+    t+=`【${o.name}】\n`;
+    o.rows.forEach(r=>{
+      const d=r.detail||{};
+      const parts=[d.size_food,d.size_drink,d.soup,d.sugar,d.ice].filter(v=>v&&v!=='無').join('、');
+      const top=d.topping?'加：'+d.topping:'';
+      const desc=[parts,top].filter(Boolean).join('　');
+      t+=`  ${r.item}${desc?' ('+desc+')':''} NT$${r.price}\n`;
+    });
+    t+='\n';
+  });
+  const grand=allOrders.flatMap(o=>o.rows).reduce((s,r)=>s+r.price,0);
+  t+=`總計：NT$${grand}`;
+  navigator.clipboard.writeText(t)
+    .then(()=>alert('已複製到剪貼簿！'))
+    .catch(()=>alert('複製失敗，請手動選取'));
+}
+
+init();
+</script>
+</body>
+</html>
