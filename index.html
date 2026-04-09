@@ -347,12 +347,29 @@ function updateBadge(){
   b.style.display=n?'inline-block':'none'; b.textContent=n;
 }
 
-function submitAll(){
-  if(!pending)return;
-  allOrders.push({...pending, time:new Date().toLocaleTimeString()});
-  lsSet(SK.orders,allOrders); pending=null; updateBadge(); renderPending(); alert('訂單已送出！'); go('export');
-}
+async function submitAll() {
+  if (!pending) return;
 
+  const webAppUrl = "https://script.google.com/macros/s/AKfycbxQ6kNgWLVEmJh1oVZ6jHpriIH5nmy6UzjwLdKkYw1ij85ixb63gEwslv5-s0jiZuvMww/exec"; // 
+
+  // 1. 送到雲端
+  try {
+    const response = await fetch(webAppUrl, {
+      method: "POST",
+      body: JSON.stringify(pending)
+    });
+    
+    // 2. 成功後再清除本地暫存
+    allOrders.push({...pending, time: new Date().toLocaleTimeString()});
+    lsSet(SK.orders, allOrders); 
+    pending = null;
+    updateBadge();
+    alert('訂單已同步至雲端！');
+    go('export');
+  } catch (error) {
+    alert('同步失敗，請檢查網路');
+  }
+}
 function renderExport(){
   const el=document.getElementById('export-area');
   if(!allOrders.length){el.innerHTML='<div class="empty">目前無訂單</div>';return}
