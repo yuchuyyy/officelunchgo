@@ -41,6 +41,7 @@ function norm(n){
   n=n.replace(/\s+/g,'').replace(/\(/g,'（').replace(/\)/g,'）');
   return n.replace(/^(.*?[^（）])([大小中])$/,'$1（$2）');
 }
+const SZ=/（[大中小]）/;
 const base=n=>n.replace(/（[^）]*）/g,'');
 const RE=/^(.*?)\s*(?:[xX×*✕]\s*(\d+))?\s*(?:[（(]\s*(\d+)\s*元?\s*[）)]|(\d+)\s*元?)?\s*$/;
 let people=[],agg={},names=[],ov={};
@@ -69,12 +70,12 @@ function parse(text){
 }
 function resolve(ps){
   const known={},kb={};
-  ps.forEach(p=>p.items.forEach(i=>{if(i.price!=null){known[i.name]=i.price;if(!(base(i.name) in kb))kb[base(i.name)]=i.price;}}));
+  ps.forEach(p=>p.items.forEach(i=>{if(i.price!=null){known[i.name]=i.price;if(!SZ.test(i.name)&&!(base(i.name) in kb))kb[base(i.name)]=i.price;}}));
   ps.forEach(p=>{
     p.items.forEach(i=>{
       if(i.price==null){
         if(i.name in known)i.price=known[i.name];
-        else if(base(i.name) in kb){i.price=kb[base(i.name)];i.inferred=true;}
+        else if(!SZ.test(i.name)&&base(i.name) in kb){i.price=kb[base(i.name)];i.inferred=true;}
       }
     });
     const unk=p.items.filter(i=>i.price==null);
@@ -98,9 +99,8 @@ function render(){
   names=Object.keys(agg);
   $('t1').innerHTML='<tr><th>品項</th><th class="r">數量</th><th class="r">單價</th><th class="r">小計</th><th>誰點的</th></tr>'+
     names.map((k,x)=>{const a=agg[k],v=eff(k);
-      const cf=a.combo?(k in ov?`<div class="mu">組合品項，已手動填價</div>`:`<div class="warn">⚠ 請確認價格</div>`):'';
-      const flag=cf+(a.prices.size>1?'<div class="warn">各人填的價格不同，請確認</div>':(a.inf&&!(k in ov)?'<div class="mu">推算價格</div>':''));
-      return `<tr><td>${esc(k)}${flag}</td><td class="r">${a.qty}</td><td class="r"><input type="number" min="0" inputmode="decimal" data-x="${x}" value="${v??''}" placeholder="填價格"></td><td class="r" id="s${x}"></td><td class="mu">${esc(a.who.join('、'))}</td></tr>`}).join('')+
+      
+      return `<tr><td>${esc(k)}<div id="f${x}"></div></td><td class="r">${a.qty}</td><td class="r"><input type="number" min="0" inputmode="decimal" data-x="${x}" value="${v??''}" placeholder="填價格"></td><td class="r" id="s${x}"></td><td class="mu">${esc(a.who.join('、'))}</td></tr>`}).join('')+
     '<tr><th>合計</th><th class="r" id="tq"></th><th></th><th class="r" id="ts"></th><th></th></tr>';
   document.querySelectorAll('#t1 input').forEach(el=>el.oninput=()=>{
     const k=names[+el.dataset.x];
@@ -110,11 +110,20 @@ function render(){
   });
   recalc();
 }
+function flagHtml(k){
+  const a=agg[k],h=[];
+  if(a.combo)h.push(k in ov?'<div class="mu">組合品項，已手動填價</div>':'<div class="warn">⚠ 請確認價格</div>');
+  if(SZ.test(k)&&eff(k)==null)h.push('<div class="warn">⚠ 大小價格不同，請確認價格</div>');
+  if(a.prices.size>1)h.push('<div class="warn">各人填的價格不同，請確認</div>');
+  if(a.inf&&!(k in ov))h.push('<div class="mu">推算價格</div>');
+  return h.join('');
+}
 function recalc(){
   let n=0,sum=0,miss=[];
   names.forEach((k,x)=>{
     const a=agg[k],v=eff(k); n+=a.qty;
     if(v==null)miss.push(k);
+    $('f'+x).innerHTML=flagHtml(k);
     $('s'+x).textContent=v!=null?v*a.qty:'?'; sum+=(v||0)*a.qty;
   });
   $('tq').textContent=n; $('ts').textContent=sum;
